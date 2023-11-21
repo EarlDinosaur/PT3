@@ -1,124 +1,124 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define ADVISORS 13
 
-struct additionlist {
-    int data;
-    struct additionlist *nextpointer;
+struct adviser {
+    int id;
+    struct adviser *next;
 };
 
-typedef struct additionlist liststruct;
-typedef liststruct *linkedliststruct;
+typedef struct adviser Adviser;
+typedef Adviser *AdviserPtr;
 
-void create(linkedliststruct *current, linkedliststruct *head, linkedliststruct *tail, int data) {
-    *current = malloc(sizeof(liststruct));
-    (*current)->data = data;
-    (*current)->nextpointer = *head;
+AdviserPtr head, tail, current;
 
-    if (*head == NULL) {
-        *head = *current;
-        *tail = *current;
-    } else {
-        (*tail)->nextpointer = *current;
-        *tail = *current;
+AdviserPtr createAdviser(int id) {
+    AdviserPtr newAdviser = (AdviserPtr)malloc(sizeof(Adviser));
+    if (newAdviser != NULL) {
+        newAdviser->id = id;
+        newAdviser->next = NULL;
     }
+    return newAdviser;
 }
 
-int dequeue(linkedliststruct *head, linkedliststruct *tail) {
-    if (*head == NULL) {
-        printf("Queue is empty.\n");
-        return -1; // Return a value indicating an error (assuming -1 is not a valid element)
+AdviserPtr createAdviserCircle(int numAdvisers) {
+    head = NULL;
+    tail = NULL;
+    for (int i = 1; i <= numAdvisers; i++) {
+        AdviserPtr newAdviser = createAdviser(i);
+        if (newAdviser != NULL) {
+            if (head == NULL) {
+                head = newAdviser;
+                tail = newAdviser;
+            } else {
+                tail->next = newAdviser;
+                tail = newAdviser;
+            }
+        }
     }
 
-    int dequeuedValue;
-    linkedliststruct temp = *head;
-
-    if (*head == *tail) {
-        // Only one element in the queue
-        dequeuedValue = temp->data;
-        *head = NULL;
-        *tail = NULL;
-    } else {
-        // Move head to the next element
-        *head = temp->nextpointer;
-        dequeuedValue = temp->data;
-        // Do not free the dequeued node to keep the circular structure
-        // free(temp);
+    if (tail != NULL) {
+        tail->next = head; // Make it circular
     }
 
-    // Update tail's next pointer to maintain the circular structure
-    *tail = temp->nextpointer;
-
-    return dequeuedValue;
+    return head;
 }
 
+void selectAdvisers(AdviserPtr *head, int start, int interval, int numToSelect) {
+    printf("Chosen Advisers: ");
+    current = *head;
 
-int findStartingAdvisor(linkedliststruct *head, int data) {
-    linkedliststruct temp = *head;
-    int position = 1;
-
-    while (temp->data != data) {
-        temp = temp->nextpointer;
-        position++;
+    for (int i = 1; i < start; i++) {
+        current = current->next; // Move to the starting adviser
     }
 
-    printf("Starting position of advisor %d: %d\n", data, position);
+    for (int i = 0; i < numToSelect; i++) {
+        for (int j = 1; j < interval; j++) {
+            current = current->next;
+        }
 
-    // Set the head to the starting advisor
-    *head = temp;
+        printf("%d", current->id);
 
-    return position;
-}
+        if (i < numToSelect - 1) {
+            printf(", ");
+        }
 
-void displayList(linkedliststruct start) {
-    if (start == NULL) {
-        printf("List is empty.\n");
-        return;
+        AdviserPtr temp = current->next;
+        // Remove the selected adviser from the circle
+        current->id = temp->id;
+        current->next = temp->next;
+        
+        if (temp == *head) {
+            *head = temp->next;
+        }
+        
+        free(temp);
     }
-
-    linkedliststruct temp = start;
-    do {
-        printf("%d ", temp->data);
-        temp = temp->nextpointer;
-    } while (temp != start);
+   
+    
     printf("\n");
 }
 
+void freeAdviserCircle(AdviserPtr *head) {
+    current = *head;
+    AdviserPtr temp;
+
+    if (*head != NULL) {
+        do {
+            temp = current->next;
+            free(current);
+            current = temp;
+        } while (current != *head);
+    }
+
+    *head = NULL;
+}
+
 int main() {
-    int advisor, interval;
-    linkedliststruct head = NULL, tail = NULL, current = NULL;
+    int start, interval;
 
-    // Enqueue elements
-    for (int i = 1; i < 14; i++) {
-        create(&current, &head, &tail, i);
+    while (1){
+        printf("Start: ");
+        scanf("%d", &start);
+
+        if (start == 0) {
+            printf("Exiting the Program");
+            break; // Exit the program
+        }
+
+        printf("Interval: ");
+        scanf("%d", &interval);
+
+        if (start < 1 || start > 13 || interval < 1 || interval > 100) {
+            printf("Invalid input. Please enter valid values.\n");
+            continue;
+        }
+
+        AdviserPtr adviserCircle = createAdviserCircle(ADVISORS);
+        selectAdvisers(&adviserCircle, start, interval, 5);
+        freeAdviserCircle(&adviserCircle);
+
     }
-
-    printf("Enter the starting position of the advisor: ");
-    scanf("%d", &advisor);
-
-    int startingPosition = findStartingAdvisor(&head, advisor);
-
-    // Display the circular linked list
-    printf("Circular Linked List: ");
-    displayList(head);
-
-    // Dequeue elements
-    int dequeuedValue = dequeue(&head, &tail);
-    if (dequeuedValue != -1) {
-        printf("Dequeued Value: %d\n", dequeuedValue);
-    }
-
-    // Display the updated circular linked list starting from the new head
-    printf("Updated Circular Linked List: ");
-    displayList(head);
-
-    // Clean up the allocated memory
-    current = head;
-    linkedliststruct next;
-    do {
-        next = current->nextpointer;
-        free(current);
-        current = next;
-    } while (current != head);
 
     return 0;
 }
