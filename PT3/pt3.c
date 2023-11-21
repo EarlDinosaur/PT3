@@ -87,38 +87,44 @@ int main() {
     int advisor, interval;
     linkedliststruct head = NULL, tail = NULL, current = NULL;
 
-    // Enqueue elements
-    for (int i = 1; i < 14; i++) {
-        create(&current, &head, &tail, i);
+    while (1) {
+        // Enqueue elements
+        for (int i = 1; i < 14; i++) {
+            create(&current, &head, &tail, i);
+        }
+
+        printf("Enter the starting position of the advisor: ");
+        scanf("%d", &advisor);
+
+        if(advisor == 0){
+            printf("Exiting the program...");
+            break;
+        }
+
+        int startingPosition = findStartingAdvisor(&head, advisor);
+
+        // Display the circular linked list
+        printf("Circular Linked List: ");
+        displayList(head);
+
+        // Dequeue elements
+        int dequeuedValue = dequeue(&head, &tail);
+        if (dequeuedValue != -1) {
+            printf("Dequeued Value: %d\n", dequeuedValue);
+        }
+
+        // Display the updated circular linked list starting from the new head
+        printf("Updated Circular Linked List: ");
+        displayList(head);
+
+        // Clean up the allocated memory
+        current = head;
+        linkedliststruct next;
+        do {
+            next = current->nextpointer;
+            free(current);
+            current = next;
+        } while (current != head);
     }
-
-    printf("Enter the starting position of the advisor: ");
-    scanf("%d", &advisor);
-
-    int startingPosition = findStartingAdvisor(&head, advisor);
-
-    // Display the circular linked list
-    printf("Circular Linked List: ");
-    displayList(head);
-
-    // Dequeue elements
-    int dequeuedValue = dequeue(&head, &tail);
-    if (dequeuedValue != -1) {
-        printf("Dequeued Value: %d\n", dequeuedValue);
-    }
-
-    // Display the updated circular linked list starting from the new head
-    printf("Updated Circular Linked List: ");
-    displayList(head);
-
-    // Clean up the allocated memory
-    current = head;
-    linkedliststruct next;
-    do {
-        next = current->nextpointer;
-        free(current);
-        current = next;
-    } while (current != head);
-
     return 0;
 }
